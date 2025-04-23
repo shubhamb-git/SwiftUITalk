@@ -14,14 +14,29 @@ final class ChatDataStore {
     private let container: NSPersistentContainer
 
     private init() {
-        container = NSPersistentContainer(name: "ChatModel")
-        container.loadPersistentStores { _, error in
+        let bundle = Bundle(for: ChatDataStore.self)
+       
+        print("📦 All bundle resources:", bundle.urls(forResourcesWithExtension: "momd", subdirectory: nil) ?? [])
+
+        guard let modelURL = bundle.url(forResource: "ChatModel", withExtension: "momd") else {
+            fatalError("❌ Could not find ChatModel.momd in framework bundle")
+        }
+
+        guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
+            fatalError("❌ Failed to load NSManagedObjectModel from URL: \(modelURL)")
+        }
+
+        container = NSPersistentContainer(name: "ChatModel", managedObjectModel: model)
+
+        container.loadPersistentStores { some, error in
             if let error = error {
                 fatalError("❌ Failed to load Core Data stack: \(error.localizedDescription)")
             }
         }
+
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
     }
+
 
     private var context: NSManagedObjectContext {
         container.viewContext
@@ -44,7 +59,7 @@ final class ChatDataStore {
                 entity.chatId = chatId
                 entity.isDelivered = message.isDelivered
                 entity.isRead = message.isRead
-
+                entity
                 // 🔁 Attach sender via relationship
                 let userEntity = self.fetchUser(with: message.senderId) ?? {
                     let newUser = UserEntity(context: self.context)
