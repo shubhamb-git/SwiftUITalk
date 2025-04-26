@@ -8,7 +8,12 @@
 import Foundation
 import Combine
 
-final class UserSessionManager: ObservableObject {
+protocol UserSessionManagable {
+    func startSession(userId: String)
+    func clearSession()
+}
+
+final class UserSessionManager: ObservableObject, UserSessionManagable {
     static let shared = UserSessionManager()
 
     @UserDefault("isUserLoggedIn", defaultValue: false)

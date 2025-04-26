@@ -16,7 +16,9 @@ final public class SwiftChat {
     private(set) var currentUser: ChatUser?
 
     private init() {}
+}
 
+extension SwiftChat: ChatConfigurable {
     public func configure(uid: String) {
         guard !uid.isEmpty else { return }
         FirebaseDB.db.collection("users").document(uid).getDocument { snapshot, error in
@@ -24,19 +26,21 @@ final public class SwiftChat {
                 print("❌ Failed to fetch current user: \(error.localizedDescription)")
                 return
             }
-
+            
             guard let data = snapshot?.data(),
                   let name = data["name"] as? String,
                   let email = data["email"] as? String else {
                 print("❌ Invalid user document format")
                 return
             }
-
+            
             self.currentUser = ChatUser(id: uid, name: name, email: email)
             print("✅ SwiftTalk current user loaded: \(name)")
         }
     }
+}
 
+extension SwiftChat: ChatUserCoordinator {
     public func registerUser(
         uid: String,
         name: String,
@@ -62,7 +66,9 @@ final public class SwiftChat {
             }
         }
     }
+}
 
+extension SwiftChat: ChatCoordinator {
     public func startChatSession(
         with user: ChatUser,
         onMessagesUpdate: @escaping ([Message]) -> Void

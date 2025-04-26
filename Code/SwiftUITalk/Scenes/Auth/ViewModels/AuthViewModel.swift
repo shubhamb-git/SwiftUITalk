@@ -19,19 +19,32 @@ class AuthViewModel: ObservableObject {
     @Published var authError: String?
     @Published var isLoading = false
 
+    private let authService: AuthServicable
+    private let sessionManager: UserSessionManagable
+    private let chatConfigurable: ChatConfigurable
+    
+    init(authService: AuthServicable = AuthService.shared,
+         sessionManager: UserSessionManagable = UserSessionManager.shared,
+         chatConfigurable: ChatConfigurable = SwiftChat.shared) {
+        self.authService = authService
+        self.sessionManager = sessionManager
+        self.chatConfigurable = chatConfigurable
+    }
+    
     func login() {
         isLoading = true
         authError = nil
-        AuthService.shared.login(email: email, password: password) { [weak self] result in
+        authService.login(email: email, password: password) { [weak self] result in
+            guard let self = self else { return }
             DispatchQueue.main.async {
-                self?.isLoading = false
+                self.isLoading = false
                 switch result {
-                case .success(let user):
-                    self?.isAuthenticated = true
-                    UserSessionManager.shared.startSession(userId: user.uid)
-                    SwiftChat.shared.configure(uid: user.uid)
+                case .success(let userId):
+                    self.isAuthenticated = true
+                    self.sessionManager.startSession(userId: userId)
+                    self.chatConfigurable.configure(uid: userId)
                 case .failure(let error):
-                    self?.authError = error.localizedDescription
+                    self.authError = error.localizedDescription
                 }
             }
         }
@@ -41,7 +54,7 @@ class AuthViewModel: ObservableObject {
         isLoading = true
         authError = nil
 
-        AuthService.shared.signUp(name: name, email: email, password: password) { [weak self] result in
+        authService.signUp(name: name, email: email, password: password) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
                 switch result {
@@ -56,11 +69,11 @@ class AuthViewModel: ObservableObject {
 
     func logout() {
         do {
-            try AuthService.shared.logout()
+            try authService.logout()
             isAuthenticated = false
             email = ""
             password = ""
-            UserSessionManager.shared.clearSession()
+            self.sessionManager.clearSession()
         } catch {
             authError = error.localizedDescription
         }

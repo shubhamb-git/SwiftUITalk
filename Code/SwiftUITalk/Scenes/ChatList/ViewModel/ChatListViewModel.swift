@@ -15,11 +15,20 @@ class ChatListViewModel: ObservableObject {
     @Published var users: [ChatUser] = []
     @Published var isLoading = false
 
+    private let userCoordinator: ChatUserCoordinator
+    private let authService: AuthServicable
+
+    init(authService: AuthServicable = AuthService.shared,
+         userCoordinator: ChatUserCoordinator = SwiftChat.shared) {
+        self.userCoordinator = userCoordinator
+        self.authService = authService
+    }
+    
     func loadUsers() {
-        guard let currentUid = Auth.auth().currentUser?.uid else { return }
+        guard let currentUid = authService.currentUserId else { return }
 
         isLoading = true
-        SwiftChat.shared.fetchUsers(excluding: currentUid) { [weak self] result in
+        userCoordinator.fetchUsers(excluding: currentUid) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isLoading = false
                 self?.users = result

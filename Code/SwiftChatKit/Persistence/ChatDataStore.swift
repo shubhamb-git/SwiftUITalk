@@ -59,7 +59,7 @@ final class ChatDataStore {
                 entity.chatId = chatId
                 entity.isDelivered = message.isDelivered
                 entity.isRead = message.isRead
-                entity
+//                entity
                 // 🔁 Attach sender via relationship
                 let userEntity = self.fetchUser(with: message.senderId) ?? {
                     let newUser = UserEntity(context: self.context)

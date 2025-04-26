@@ -20,19 +20,21 @@ class ChatViewModel: ObservableObject {
     private var typingTimer: Timer?
     private var readMessages: Set<String> = []
 
-    init(chatUser: ChatUser) {
+    private let chatCoordinator: ChatCoordinator
+
+    init(chatUser: ChatUser, chatCoordinator: ChatCoordinator = SwiftChat.shared) {
         self.chatUser = chatUser
+        self.chatCoordinator = chatCoordinator
+
         let userCopy = chatUser
 
-        self.chatId = SwiftChat.shared.startChatSession(
-            with: userCopy
-        ) { [weak self] messages in
+        self.chatId = chatCoordinator.startChatSession(with: userCopy) { [weak self] messages in
             DispatchQueue.main.async {
                 self?.messages = messages
             }
         }
 
-        SwiftChat.shared.listenToTypingStatus(with: userCopy) { [weak self] isTyping in
+        chatCoordinator.listenToTypingStatus(with: userCopy) { [weak self] isTyping in
             DispatchQueue.main.async {
                 self?.isUserTyping = isTyping
             }
@@ -43,7 +45,7 @@ class ChatViewModel: ObservableObject {
         let text = newMessage.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
 
-        SwiftChat.shared.sendMessage(chatId: chatId, text: text)
+        chatCoordinator.sendMessage(chatId: chatId, text: text)
         newMessage = ""
     }
 
@@ -51,11 +53,13 @@ class ChatViewModel: ObservableObject {
         let userCopy = chatUser
 
         guard !newMessage.isEmpty else { return }
-        SwiftChat.shared.updateTypingStatus(with: userCopy, isTyping: true)
+        chatCoordinator.updateTypingStatus(with: userCopy, isTyping: true)
 
         typingTimer?.invalidate()
-        typingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) { _ in
-            SwiftChat.shared.updateTypingStatus(with: userCopy, isTyping: false)
+        typingTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: false) {[weak self] _ in
+            Task { @MainActor in
+                    self?.chatCoordinator.updateTypingStatus(with: userCopy, isTyping: false)
+                }
         }
     }
 
@@ -67,7 +71,7 @@ class ChatViewModel: ObservableObject {
             !readMessages.contains(messageId)
         else { return }
 
-        SwiftChat.shared.markMessageAsRead(chatId: chatId, messageId: messageId)
+        chatCoordinator.markMessageAsRead(chatId: chatId, messageId: messageId)
         readMessages.insert(messageId)
     }
 }

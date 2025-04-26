@@ -11,18 +11,24 @@ import Foundation
 class ProfileViewModel: ObservableObject {
     @Published var email: String = ""
 
-    init() {
+    private let authService: AuthServicable
+    private let sessionManager: UserSessionManagable
+
+    init(authService: AuthServicable = AuthService.shared,
+         sessionManager: UserSessionManagable = UserSessionManager.shared) {
+        self.authService = authService
+        self.sessionManager = sessionManager
         loadCurrentUser()
     }
 
     func loadCurrentUser() {
-        email = AuthService.shared.currentUser?.email ?? ""
+        email = authService.currentUserEmail ?? ""
     }
 
     func logout() {
         do {
-            try AuthService.shared.logout()
-            UserSessionManager.shared.clearSession()
+            try authService.logout()
+            sessionManager.clearSession()
         } catch {
             print("Logout error: \(error.localizedDescription)")
         }
