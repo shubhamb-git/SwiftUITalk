@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestore
 
-final class ChatService {
+final class ChatService: ChatServiceProtocol {
     private let firestore: FirestoreChatServiceProtocol
     private let local: ChatMessageDataStoreProtocol
 

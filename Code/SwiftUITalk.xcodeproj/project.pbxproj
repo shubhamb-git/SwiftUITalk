@@ -178,7 +178,6 @@
 				6C8F8AD32DB3FB5500440E9F /* SwiftUITalkTests */,
 				6C3B44EA2DB42BE600BD6F7A /* SwiftChatKit */,
 				6C3B44F62DB42BE600BD6F7A /* SwiftChatKitTests */,
-				6CFF28EB2DBCD1D600795641 /* Frameworks */,
 				6C8F8ABC2DB3FB5300440E9F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -200,13 +199,6 @@
 			children = (
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		6CFF28EB2DBCD1D600795641 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -368,7 +360,6 @@
 					};
 					6C8F8AD92DB3FB5500440E9F = {
 						CreatedOnToolsVersion = 16.0;
-						TestTargetID = 6C8F8ABA2DB3FB5300440E9F;
 					};
 				};
 			};
@@ -861,32 +852,44 @@
 		6C8F8AEB2DB3FB5500440E9F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sb.SwiftUITalkUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = SwiftUITalk;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
 		6C8F8AEC2DB3FB5500440E9F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sb.SwiftUITalkUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = SwiftUITalk;
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};

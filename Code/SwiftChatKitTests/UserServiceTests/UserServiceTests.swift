@@ -9,13 +9,13 @@ import XCTest
 @testable import SwiftChatKit
 
 final class UserServiceTests: XCTestCase {
-    var mockFirestore: MockFirestoreService!
+    var mockFirestore: MockFirestoreUserService!
     var mockLocalStore: MockChatDataStore!
     var service: UserService!
 
     override func setUp() {
         super.setUp()
-        mockFirestore = MockFirestoreService()
+        mockFirestore = MockFirestoreUserService()
         mockLocalStore = MockChatDataStore()
         service = UserService(firestore: mockFirestore, local: mockLocalStore)
     }

@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestore
 
-final class UserService {
+final class UserService: UserServiceProtocol {
     private let firestore: FirestoreUserServiceProtocol
     private let local: ChatUserDataStoreProtocol
 

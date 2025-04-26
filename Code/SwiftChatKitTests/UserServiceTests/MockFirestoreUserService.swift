@@ -1,15 +1,14 @@
 //
-//  MockFirestoreService.swift
+//  MockFirestoreUserService.swift
 //  SwiftUITalk
 //
 //  Created by Shubham Bairagi on 26/04/25.
 //
 
 import Foundation
-import SwiftUITalk
 @testable import SwiftChatKit
 
-class MockFirestoreService: FirestoreUserServiceProtocol {
+class MockFirestoreUserService: FirestoreUserServiceProtocol {
     var shouldUserExist = true
     var shouldFail = false
     var mockUsers: [ChatUser] = []
@@ -18,11 +17,9 @@ class MockFirestoreService: FirestoreUserServiceProtocol {
         if shouldFail {
             completion(.failure(NSError(domain: "MockFail", code: 1)))
         } else if shouldUserExist {
-            // Return a mock user
             let user = ChatUser(id: uid, name: "Test User", email: "test@example.com")
             completion(.success(user))
         } else {
-            // Simulate user not found (this means in your logic -> needs creation)
             completion(.failure(NSError(domain: "NoData", code: 404)))
         }
     }
