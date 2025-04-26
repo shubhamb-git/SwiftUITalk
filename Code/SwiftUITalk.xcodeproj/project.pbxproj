@@ -83,9 +83,6 @@
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
 		6C3B44FE2DB42BE600BD6F7A /* Exceptions for "SwiftChatKit" folder in "SwiftChatKit" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Persistence/ChatModel.xcdatamodeld,
-			);
 			publicHeaders = (
 				SwiftChatKit.h,
 			);
