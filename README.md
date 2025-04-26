@@ -95,9 +95,8 @@ SwiftChatKit (Framework)
 ## 🛠 How to Run
 
 1. Clone the repo
-2. Run `pod install` (if Firebase is added via CocoaPods) OR set Swift Package Manager correctly.
-3. Open `.xcworkspace` or `.xcodeproj`.
-4. Configure your Firebase `GoogleService-Info.plist`.
+2. set Swift Package Manager correctly.
+3. Open `.xcodeproj`.
 5. Build & Run on iOS Simulator or real device.
 
 ---
@@ -110,4 +109,4 @@ Feel free to fork this repo, make improvements, and submit pull requests.
 
 ## 📄 License
 
-MIT License © 2025 [YourName]
+MIT License © 2025 Shubham Bairagi
