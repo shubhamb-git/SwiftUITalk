@@ -42,7 +42,7 @@ class AuthViewModel: ObservableObject {
                 case .success(let userId):
                     self.isAuthenticated = true
                     self.sessionManager.startSession(userId: userId)
-                    self.chatConfigurable.configure(uid: userId)
+//                    self.chatConfigurable.configure(uid: userId)
                 case .failure(let error):
                     self.authError = error.localizedDescription
                 }

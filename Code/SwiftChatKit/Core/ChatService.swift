@@ -60,10 +60,17 @@ final class ChatService {
     }
 
     func sendMessage(chatId: String, message: Message, completion: ((Error?) -> Void)? = nil) {
-        // ✅ Save locally first (optimistic)
+        var message = message
+
+        // ✅ Assign temporary UUID for local optimistic storage
+        if message.id == nil {
+            message.id = UUID().uuidString
+        }
+
+        // ✅ Save locally with temp ID
         local.saveMessages([message], for: chatId)
 
-        // ✅ Then push to Firestore
+        // ✅ Push to Firestore (which will assign real ID)
         do {
             _ = try db.collection("chats")
                 .document(chatId)
@@ -124,7 +131,7 @@ final class ChatService {
             .document(messageId)
             .updateData(["isDelivered": true])
 
-        ChatDataStore.shared.updateMessageStatus(chatId: chatId, messageId: messageId, isDelivered: true)
+        local.updateMessageStatus(chatId: chatId, messageId: messageId, isDelivered: true)
     }
 
     func markMessageAsRead(chatId: String, messageId: String) {
@@ -134,6 +141,11 @@ final class ChatService {
             .document(messageId)
             .updateData(["isRead": true])
 
-        ChatDataStore.shared.updateMessageStatus(chatId: chatId, messageId: messageId, isRead: true)
+        local.updateMessageStatus(chatId: chatId, messageId: messageId, isRead: true)
     }
+    
+    func clearAllData() {
+        local.clearAllData()
+    }
+        
 }

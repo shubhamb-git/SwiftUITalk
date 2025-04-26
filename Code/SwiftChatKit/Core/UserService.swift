@@ -44,8 +44,8 @@ final class UserService {
         excluding uid: String,
         completion: @escaping (Result<[ChatUser], Error>) -> Void
     ) {
-        // ✅ First send cached messages immediately
-        let cached = local.fetchCachedUsers()
+        // ✅ First send cached users immediately
+        let cached = local.fetchCachedUsers().filter { $0.id != uid }
         completion(.success(cached))
 
         db.collection("users").getDocuments { snapshot, error in
@@ -56,12 +56,14 @@ final class UserService {
             }
 
             let users = documents.compactMap { try? $0.data(as: ChatUser.self) }
-            let filteredUsers = users.filter { $0.id != uid }
+            let filtered = users.filter { $0.id != nil && $0.id != uid }
 
-            // ✅ Save to cache
-            self.local.saveUsers(filteredUsers)
+            // ✅ Save to CoreData
+            self.local.saveUsers(filtered)
 
-            completion(.success(filteredUsers))
+            // ✅ After saving, fetch again from local DB, now with lastMessageTimestamp
+            let refreshedCachedUsers = self.local.fetchCachedUsers().filter { $0.id != uid }
+            completion(.success(refreshedCachedUsers))
         }
     }
 }

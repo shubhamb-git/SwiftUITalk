@@ -9,11 +9,11 @@ import Foundation
 
 final public class SwiftChat {
     public static let shared = SwiftChat()
-
     private let userService = UserService()
     private let chatService = ChatService()
 
     private(set) var currentUser: ChatUser?
+    private let kLastLoggedInUserId = "LastLoggedInUserId"
 
     private init() {}
 }
@@ -21,19 +21,30 @@ final public class SwiftChat {
 extension SwiftChat: ChatConfigurable {
     public func configure(uid: String) {
         guard !uid.isEmpty else { return }
+
+        let savedUid = UserDefaults.standard.string(forKey: kLastLoggedInUserId)
+
+        if let savedUid = savedUid, savedUid != uid {
+            print("🔁 User changed from \(savedUid) to \(uid). Clearing local data...")
+            ChatDataStore.shared.clearAllData()
+        }
+
+        // Always update the saved UID
+        UserDefaults.standard.set(uid, forKey: kLastLoggedInUserId)
+
         FirebaseDB.db.collection("users").document(uid).getDocument { snapshot, error in
             if let error = error {
                 print("❌ Failed to fetch current user: \(error.localizedDescription)")
                 return
             }
-            
+
             guard let data = snapshot?.data(),
                   let name = data["name"] as? String,
                   let email = data["email"] as? String else {
                 print("❌ Invalid user document format")
                 return
             }
-            
+
             self.currentUser = ChatUser(id: uid, name: name, email: email)
             print("✅ SwiftTalk current user loaded: \(name)")
         }

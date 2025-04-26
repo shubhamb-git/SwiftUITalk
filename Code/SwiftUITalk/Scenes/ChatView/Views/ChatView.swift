@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftChatKit
 
 struct ChatView: View {
+    
     @StateObject private var viewModel: ChatViewModel
 
     init(chatUser: ChatUser) {
@@ -21,62 +22,14 @@ struct ChatView: View {
                 ScrollView {
                     VStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            HStack {
-                                if message.senderId == AuthService.shared.currentUser?.uid {
-                                    Spacer()
-                                }
-
-                                VStack(alignment: message.senderId == AuthService.shared.currentUser?.uid ? .trailing : .leading, spacing: 4) {
-                                    Text(message.text)
-                                        .padding()
-                                        .background(
-                                            message.senderId == AuthService.shared.currentUser?.uid
-                                                ? Color.blue
-                                                : Color.gray.opacity(0.2)
-                                        )
-                                        .foregroundColor(message.senderId == AuthService.shared.currentUser?.uid ? .white : .black)
-                                        .cornerRadius(10)
-
-                                    HStack(spacing: 6) {
-                                        Text(message.timestamp.formatted(date: .omitted, time: .shortened))
-                                            .font(.caption2)
-                                            .foregroundColor(.gray)
-
-                                        if message.senderId == AuthService.shared.currentUser?.uid {
-                                            Text(message.isDelivered ? "✓✓" : "✓")
-                                                .font(.caption2)
-                                                .foregroundColor(message.isRead ? .blue : .gray)
-                                        }
-                                    }
-                                }
-                                .onAppear {
-                                    viewModel.markMessageAsReadIfNeeded(message: message)
-                                }
-
-                                if message.senderId != AuthService.shared.currentUser?.uid {
-                                    Spacer()
-                                }
-                            }
-                            .padding(.horizontal)
-                            .id(message.id)
+                            ChatMessageRow(message: message)
+                                .id(message.id)
                         }
-
-                        // ✅ Typing indicator styled as a message bubble
                         if viewModel.isUserTyping {
-                            HStack {
-                                Text("Typing...")
-                                    .padding()
-                                    .background(Color.gray.opacity(0.2))
-                                    .foregroundColor(.gray)
-                                    .cornerRadius(10)
-                                Spacer()
-                            }
-                            .padding(.horizontal)
-                            .padding(.top, 4) // ✅ Better spacing below last message
-                            .transition(.opacity)
+                            TypingBubble()
+                                .padding(.top, 4)
                         }
 
-                        // ✅ Invisible scroll anchor
                         Color.clear
                             .frame(height: 1)
                             .id("BottomAnchor")
@@ -128,7 +81,7 @@ struct ChatView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 }
-
-#Preview {
-    ChatView(chatUser: .init(name: "Shubham", email: "Shubh@gmail.com"))
-}
+//
+//#Preview {
+//    ChatView(chatUser: .init(name: "Shubham", email: "Shubh@gmail.com"))
+//}
