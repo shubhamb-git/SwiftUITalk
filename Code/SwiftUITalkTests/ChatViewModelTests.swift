@@ -2,7 +2,7 @@
 //  ChatViewModelTests.swift
 //  SwiftUITalk
 //
-//  Created by Priya Vaishnav on 24/04/25.
+//  Created by Shubham Bairagi on 24/04/25.
 //
 
 import XCTest

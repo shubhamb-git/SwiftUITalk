@@ -2,7 +2,7 @@
 //  ChatDataStore.swift
 //  SwiftUITalk
 //
-//  Created by Priya Vaishnav on 21/04/25.
+//  Created by Shubham Bairagi on 21/04/25.
 //
 
 import Foundation
@@ -44,6 +44,88 @@ final class ChatDataStore {
         container.viewContext
     }
     
+    func clearAllData() {
+        let entities = container.managedObjectModel.entities
+
+        context.performAndWait {
+            for entity in entities {
+                guard let name = entity.name else { continue }
+                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: name)
+                let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+                batchDeleteRequest.resultType = .resultTypeObjectIDs
+
+                do {
+                    let result = try context.execute(batchDeleteRequest) as? NSBatchDeleteResult
+                    let deletedObjectIDs = result?.result as? [NSManagedObjectID] ?? []
+                    
+                    let changes: [AnyHashable: Any] = [
+                        NSDeletedObjectsKey: deletedObjectIDs
+                    ]
+                    
+                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
+                    print("🧹 Cleared all data for entity:", name)
+                } catch {
+                    print("❌ Failed to delete data for entity:", name, error.localizedDescription)
+                }
+            }
+        }
+    }
+}
+
+
+extension ChatDataStore: ChatUserDataStoreProtocol {
+    
+    // MARK: - Fetch Cached Users
+    func fetchCachedUsers() -> [ChatUser] {
+        let request: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+
+        do {
+            let results = try context.fetch(request)
+            return results.map { entity in
+                let lastMessage = entity.messages?
+                    .compactMap { ($0 as? MessageEntity)?.timestamp }
+                    .max()
+
+                return ChatUser(
+                    id: entity.id,
+                    name: entity.name ?? "",
+                    email: entity.email ?? "",
+                    lastMessageTimestamp: lastMessage
+                )
+            }
+        } catch {
+            print("❌ Failed to fetch cached users: \(error.localizedDescription)")
+            return []
+        }
+    }
+    
+    // MARK: - Save Users
+    
+    func saveUsers(_ users: [ChatUser]) {
+        context.perform {
+            for user in users {
+                let fetch: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
+                fetch.predicate = NSPredicate(format: "id == %@", user.id ?? "")
+                
+                let existing = try? self.context.fetch(fetch).first
+                let entity = existing ?? UserEntity(context: self.context)
+                
+                entity.id = user.id
+                entity.name = user.name
+                entity.email = user.email
+            }
+            
+            do {
+                try self.context.save()
+            } catch {
+                print("❌ Failed to save users: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+
+extension ChatDataStore: ChatMessageDataStoreProtocol {
     // MARK: - Save Messages
     
     func saveMessages(_ messages: [Message], for chatId: String) {
@@ -89,7 +171,6 @@ final class ChatDataStore {
         }
     }
 
-
     private func update(_ entity: MessageEntity, with message: Message, chatId: String) {
         entity.id = message.id
         entity.text = message.text
@@ -112,31 +193,6 @@ final class ChatDataStore {
         request.fetchLimit = 1
         
         return try? context.fetch(request).first
-    }
-    
-    
-    // MARK: - Save Users
-    
-    func saveUsers(_ users: [ChatUser]) {
-        context.perform {
-            for user in users {
-                let fetch: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
-                fetch.predicate = NSPredicate(format: "id == %@", user.id ?? "")
-                
-                let existing = try? self.context.fetch(fetch).first
-                let entity = existing ?? UserEntity(context: self.context)
-                
-                entity.id = user.id
-                entity.name = user.name
-                entity.email = user.email
-            }
-            
-            do {
-                try self.context.save()
-            } catch {
-                print("❌ Failed to save users: \(error.localizedDescription)")
-            }
-        }
     }
     
     // MARK: - Load Cached Messages
@@ -164,32 +220,6 @@ final class ChatDataStore {
         }
     }
     
-    // MARK: - Fetch Cached Users
-    
-    func fetchCachedUsers() -> [ChatUser] {
-        let request: NSFetchRequest<UserEntity> = UserEntity.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
-
-        do {
-            let results = try context.fetch(request)
-            return results.map { entity in
-                let lastMessage = entity.messages?
-                    .compactMap { ($0 as? MessageEntity)?.timestamp }
-                    .max()
-
-                return ChatUser(
-                    id: entity.id,
-                    name: entity.name ?? "",
-                    email: entity.email ?? "",
-                    lastMessageTimestamp: lastMessage
-                )
-            }
-        } catch {
-            print("❌ Failed to fetch cached users: \(error.localizedDescription)")
-            return []
-        }
-    }
-    
     func updateMessageStatus(
         chatId: String,
         messageId: String,
@@ -213,33 +243,6 @@ final class ChatDataStore {
                     try self.context.save()
                 } catch {
                     print("❌ Failed to update cached message status: \(error.localizedDescription)")
-                }
-            }
-        }
-    }
-    
-    func clearAllData() {
-        let entities = container.managedObjectModel.entities
-
-        context.performAndWait {
-            for entity in entities {
-                guard let name = entity.name else { continue }
-                let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: name)
-                let batchDeleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
-                batchDeleteRequest.resultType = .resultTypeObjectIDs
-
-                do {
-                    let result = try context.execute(batchDeleteRequest) as? NSBatchDeleteResult
-                    let deletedObjectIDs = result?.result as? [NSManagedObjectID] ?? []
-                    
-                    let changes: [AnyHashable: Any] = [
-                        NSDeletedObjectsKey: deletedObjectIDs
-                    ]
-                    
-                    NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
-                    print("🧹 Cleared all data for entity:", name)
-                } catch {
-                    print("❌ Failed to delete data for entity:", name, error.localizedDescription)
                 }
             }
         }

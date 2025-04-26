@@ -2,7 +2,7 @@
 //  TypingBubble.swift
 //  SwiftUITalk
 //
-//  Created by Priya Vaishnav on 26/04/25.
+//  Created by Shubham Bairagi on 26/04/25.
 //
 import SwiftUI
 

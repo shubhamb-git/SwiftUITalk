@@ -2,18 +2,19 @@
 //  UserService.swift
 //  SwiftUITalk
 //
-//  Created by Priya Vaishnav on 20/04/25.
+//  Created by Shubham Bairagi on 20/04/25.
 //
 
 import Foundation
 import FirebaseFirestore
 
 final class UserService {
-    private let db: Firestore
-    private let local: ChatDataStore
+    private let firestore: FirestoreUserServiceProtocol
+    private let local: ChatUserDataStoreProtocol
 
-    init(db: Firestore = FirebaseDB.db, local: ChatDataStore = ChatDataStore.shared) {
-        self.db = db
+    init(firestore: FirestoreUserServiceProtocol = FirestoreService(),
+         local: ChatUserDataStoreProtocol = ChatDataStore.shared) {
+        self.firestore = firestore
         self.local = local
     }
 
@@ -23,23 +24,19 @@ final class UserService {
         email: String,
         completion: @escaping (Error?) -> Void
     ) {
-        let user = ChatUser(id: uid, name: name, email: email)
-        let docRef = db.collection("users").document(uid)
-
-        docRef.getDocument { doc, error in
-            if let doc = doc, doc.exists {
-                completion(nil) // already exists
-            } else {
-                do {
-                    try docRef.setData(from: user)
-                    completion(nil)
-                } catch {
-                    completion(error)
-                }
+        firestore.getUserDocument(uid: uid) { result in
+            switch result {
+            case .success:
+                // ✅ User already exists
+                completion(nil)
+            case .failure:
+                // ✅ No user found, so create
+                let user = ChatUser(id: uid, name: name, email: email)
+                self.firestore.createUser(uid: uid, user: user, completion: completion)
             }
         }
     }
-    
+
     func fetchAllUsers(
         excluding uid: String,
         completion: @escaping (Result<[ChatUser], Error>) -> Void
@@ -48,22 +45,16 @@ final class UserService {
         let cached = local.fetchCachedUsers().filter { $0.id != uid }
         completion(.success(cached))
 
-        db.collection("users").getDocuments { snapshot, error in
-            guard let documents = snapshot?.documents else {
-                // 🔁 Fallback to cached users on error
-                let cached = self.local.fetchCachedUsers().filter { $0.id != uid }
-                return completion(.success(cached))
+        firestore.fetchAllUsers { result in
+            switch result {
+            case .success(let firestoreUsers):
+                let filtered = firestoreUsers.filter { $0.id != uid }
+                self.local.saveUsers(filtered)
+                completion(.success(self.local.fetchCachedUsers().filter { $0.id != uid }))
+            case .failure:
+                let fallbackCached = self.local.fetchCachedUsers().filter { $0.id != uid }
+                completion(.success(fallbackCached))
             }
-
-            let users = documents.compactMap { try? $0.data(as: ChatUser.self) }
-            let filtered = users.filter { $0.id != nil && $0.id != uid }
-
-            // ✅ Save to CoreData
-            self.local.saveUsers(filtered)
-
-            // ✅ After saving, fetch again from local DB, now with lastMessageTimestamp
-            let refreshedCachedUsers = self.local.fetchCachedUsers().filter { $0.id != uid }
-            completion(.success(refreshedCachedUsers))
         }
     }
 }

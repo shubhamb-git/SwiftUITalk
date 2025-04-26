@@ -2,18 +2,19 @@
 //  ChatService.swift
 //  SwiftUITalk
 //
-//  Created by Priya Vaishnav on 20/04/25.
+//  Created by Shubham Bairagi on 20/04/25.
 //
 
 import Foundation
 import FirebaseFirestore
 
 final class ChatService {
-    private let db: Firestore
-    private let local: ChatDataStore
+    private let firestore: FirestoreChatServiceProtocol
+    private let local: ChatMessageDataStoreProtocol
 
-    init(db: Firestore = FirebaseDB.db, local: ChatDataStore = ChatDataStore.shared) {
-        self.db = db
+    init(firestore: FirestoreChatServiceProtocol = FirestoreService(),
+         local: ChatMessageDataStoreProtocol = ChatDataStore.shared) {
+        self.firestore = firestore
         self.local = local
     }
 
@@ -22,85 +23,51 @@ final class ChatService {
         currentUserId: String,
         completion: @escaping ([Message]) -> Void
     ) {
-        // ✅ First send cached messages immediately
         let cached = local.fetchCachedMessages(for: chatId)
         completion(cached)
 
-        // 🔁 Then listen for real-time updates from Firestore
-        db.collection("chats")
-            .document(chatId)
-            .collection("messages")
-            .order(by: "timestamp")
-            .addSnapshotListener { snapshot, error in
-                guard let documents = snapshot?.documents else {
-                    print("❌ Firestore listen failed: \(String(describing: error?.localizedDescription))")
-                    return
-                }
+        firestore.listenToMessages(chatId: chatId) { [weak self] result in
+            guard let self = self else { return }
 
-                let messages = documents.compactMap {
-                    try? $0.data(as: Message.self)
-                }
-
-                // ✅ Save to Core Data
+            switch result {
+            case .success(let messages):
                 self.local.saveMessages(messages, for: chatId)
-
-                // ✅ Pass to caller
                 completion(messages)
 
-                // ✅ Mark as delivered if needed
-                for doc in documents {
-                    if let message = try? doc.data(as: Message.self),
-                       message.senderId != currentUserId,
+                for message in messages {
+                    if message.senderId != currentUserId,
                        message.isDelivered == false,
-                       let id = doc.documentID as String? {
-                        self.markMessageAsDelivered(chatId: chatId, messageId: id)
+                       let messageId = message.id {
+                        self.markMessageAsDelivered(chatId: chatId, messageId: messageId)
                     }
                 }
+
+            case .failure(let error):
+                print("❌ Firestore listen error:", error.localizedDescription)
             }
+        }
     }
 
     func sendMessage(chatId: String, message: Message, completion: ((Error?) -> Void)? = nil) {
         var message = message
 
-        // ✅ Assign temporary UUID for local optimistic storage
         if message.id == nil {
             message.id = UUID().uuidString
         }
 
-        // ✅ Save locally with temp ID
         local.saveMessages([message], for: chatId)
 
-        // ✅ Push to Firestore (which will assign real ID)
-        do {
-            _ = try db.collection("chats")
-                .document(chatId)
-                .collection("messages")
-                .addDocument(from: message)
-
-            completion?(nil)
-        } catch {
-            print("❌ Failed to send message: \(error.localizedDescription)")
+        firestore.sendMessage(chatId: chatId, message: message) { error in
             completion?(error)
         }
     }
 
     func createChatIfNeeded(chatId: String, participants: [String]) {
-        let chatRef = db.collection("chats").document(chatId)
-        chatRef.getDocument { doc, error in
-            if let doc = doc, !doc.exists {
-                chatRef.setData([
-                    "users": participants,
-                    "createdAt": FieldValue.serverTimestamp()
-                ])
-            }
-        }
+        firestore.createChatIfNeeded(chatId: chatId, participants: participants)
     }
 
     func updateTypingStatus(chatId: String, userId: String, isTyping: Bool) {
-        let field = "typingStatus.\(userId)"
-        db.collection("chats").document(chatId).updateData([
-            field: isTyping
-        ])
+        firestore.updateTypingStatus(chatId: chatId, userId: userId, isTyping: isTyping)
     }
 
     func listenToTypingStatus(
@@ -108,44 +75,22 @@ final class ChatService {
         currentUserId: String,
         onTypingChanged: @escaping (Bool) -> Void
     ) {
-        db.collection("chats").document(chatId)
-            .addSnapshotListener { snapshot, error in
-                guard let data = snapshot?.data(),
-                      let typingStatus = data["typingStatus"] as? [String: Bool] else {
-                    onTypingChanged(false)
-                    return
-                }
-
-                let othersAreTyping = typingStatus
-                    .filter { $0.key != currentUserId }
-                    .contains(where: { $0.value == true })
-
-                onTypingChanged(othersAreTyping)
-            }
+        firestore.listenToTypingStatus(chatId: chatId, currentUserId: currentUserId, onTypingChanged: onTypingChanged)
     }
 
     func markMessageAsDelivered(chatId: String, messageId: String) {
-        db.collection("chats")
-            .document(chatId)
-            .collection("messages")
-            .document(messageId)
-            .updateData(["isDelivered": true])
-
-        local.updateMessageStatus(chatId: chatId, messageId: messageId, isDelivered: true)
+        firestore.markMessageAsDelivered(chatId: chatId, messageId: messageId)
+        local.updateMessageStatus(chatId: chatId, messageId: messageId, isRead: nil, isDelivered: true)
     }
 
     func markMessageAsRead(chatId: String, messageId: String) {
-        db.collection("chats")
-            .document(chatId)
-            .collection("messages")
-            .document(messageId)
-            .updateData(["isRead": true])
+        firestore.markMessageAsRead(chatId: chatId, messageId: messageId)
+        local.updateMessageStatus(chatId: chatId, messageId: messageId, isRead: true, isDelivered: nil)
+    }
 
-        local.updateMessageStatus(chatId: chatId, messageId: messageId, isRead: true)
-    }
-    
     func clearAllData() {
-        local.clearAllData()
+        if let localStore = local as? ChatDataStore {
+            localStore.clearAllData()
+        }
     }
-        
 }

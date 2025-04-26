@@ -2,7 +2,7 @@
 //  SwiftChat.swift
 //  SwiftUITalk
 //
-//  Created by Priya Vaishnav on 20/04/25.
+//  Created by Shubham Bairagi on 20/04/25.
 //
 
 import Foundation
@@ -26,7 +26,7 @@ extension SwiftChat: ChatConfigurable {
 
         if let savedUid = savedUid, savedUid != uid {
             print("🔁 User changed from \(savedUid) to \(uid). Clearing local data...")
-            ChatDataStore.shared.clearAllData()
+            chatService.clearAllData()
         }
 
         // Always update the saved UID

@@ -2,7 +2,7 @@
 //  ChatListViewModel.swift
 //  SwiftUITalk
 //
-//  Created by Priya Vaishnav on 20/04/25.
+//  Created by Shubham Bairagi on 20/04/25.
 //
 
 
