@@ -23,19 +23,20 @@ struct ChatMessageRow: View {
 
             VStack(alignment: isCurrentUser ? .trailing : .leading, spacing: 4) {
                 Text(message.text)
-                    .padding()
+                    .font(.subheadline)
+                    .padding(8)
                     .background(isCurrentUser ? Color.blue : Color.gray.opacity(0.2))
                     .foregroundColor(isCurrentUser ? .white : .black)
                     .cornerRadius(10)
 
                 HStack(spacing: 6) {
                     Text(message.timestamp.formatted(date: .omitted, time: .shortened))
-                        .font(.caption2)
+                        .font(.footnote)
                         .foregroundColor(.gray)
 
                     if isCurrentUser {
                         Text(message.isDelivered ? "✓✓" : "✓")
-                            .font(.caption2)
+                            .font(.footnote)
                             .foregroundColor(message.isRead ? .blue : .gray)
                     }
                 }
