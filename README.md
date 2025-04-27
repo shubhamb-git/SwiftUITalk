@@ -1,4 +1,4 @@
-![Simulator Screenshot - iPhone 16 - 2025-04-27 at 19 36 32](https://github.com/user-attachments/assets/e7d451db-9348-405a-96d5-0820366e6142)
+
 # SwiftChatKit + SwiftUITalk 🚀
 
 A modular, real-time chat framework built with SwiftUI, Swift, Firebase, and Core Data.
