@@ -1,4 +1,4 @@
-
+![Simulator Screenshot - iPhone 16 - 2025-04-27 at 19 36 32](https://github.com/user-attachments/assets/e7d451db-9348-405a-96d5-0820366e6142)
 # SwiftChatKit + SwiftUITalk 🚀
 
 A modular, real-time chat framework built with SwiftUI, Swift, Firebase, and Core Data.
@@ -62,7 +62,7 @@ SwiftChatKit (Framework)
 
 | Login / Signup | Chat List | Chat Screen |
 |:---:|:---:|:---:|
-| ![Login](screenshots/login.png) | ![ChatList](screenshots/chatlist.png) | ![ChatView](screenshots/chatview.png) |
+| ![Simulator Screenshot - iPhone 16 - 2025-04-27 at 19 36 41](https://github.com/user-attachments/assets/bfa64e5b-ada3-48c4-9117-057717f3ea42) |![Simulator Screenshot - iPhone 16 - 2025-04-27 at 19 36 32](https://github.com/user-attachments/assets/dd02b4b6-fe3d-496d-ad1e-8f9ff628e48c) |![Simulator Screenshot - iPhone 16 - 2025-04-27 at 19 35 58](https://github.com/user-attachments/assets/e0846563-a48e-4db4-a94b-abc451ba7ce1)|
 
 ---
 
